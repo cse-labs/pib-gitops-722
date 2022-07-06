@@ -10,7 +10,7 @@ deployments:
       key2: Cats
       name: dogs-cats
       namespace: dogs-cats
-      nodePort: 30080
+      nodePort: 30088
       port: 8080
       targets: []
       title: Dogs Rule!

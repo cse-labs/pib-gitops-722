@@ -59,35 +59,12 @@ metadata:
   name: {{gitops.name}}
   namespace: {{gitops.namespace}}
 spec:
-  type: ClusterIP
+  type: NodePort
   ports:
     - port: 8080
-      targetPort: http
+      targetPort: 8080
+      nodePort: 31082
       protocol: TCP
       name: http
   selector:
     app: {{gitops.name}}
-
----
-
-apiVersion: networking.istio.io/v1beta1
-kind: VirtualService
-metadata:
-  name: {{gitops.name}}-vs
-  namespace: {{gitops.namespace}}
-spec:
-  hosts:
-    - "{{gitops.cluster.domain}}"
-  gateways:
-    - istio-system/istio-gateway
-  http:
-    - match:
-        - uri:
-            prefix: "/tlog"
-      rewrite:
-        uri: "/tlog"
-      route:
-        - destination:
-            host: {{gitops.name}}
-            port:
-              number: 8080

@@ -11,5 +11,6 @@ deployments:
       name: imdb
       namespace: imdb
       port: 8080
+      nodePort: 30080
       targets: []
       workspace: imdb

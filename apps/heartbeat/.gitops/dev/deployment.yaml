@@ -33,21 +33,3 @@ spec:
             limits:
               cpu: 100m
               memory: 64Mi
-
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: heartbeat
-  namespace: heartbeat
-spec:
-  type: NodePort
-  ports:
-    - port: 8080
-      nodePort: 31080
-      targetPort: http
-      protocol: TCP
-      name: http
-  selector:
-    app: heartbeat
