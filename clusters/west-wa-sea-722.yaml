@@ -1,0 +1,13 @@
+kind: Cluster
+metadata:
+  name: west-wa-sea-722
+  labels:
+    environment: dev
+    region: west
+    zone: west-wa
+    district: west-wa-sea
+    store: west-wa-sea-722
+    gitopsRepo: retaildevcrews/bartr-fleet
+    gitopsBranch: main
+    domain: west-wa-sea-722.cseretail.com
+spec:
