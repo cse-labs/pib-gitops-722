@@ -1,4 +1,0 @@
-kind: Workspace
-metadata:
-  name: istio-system
-spec: {}

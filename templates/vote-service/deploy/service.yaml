@@ -6,8 +6,9 @@ metadata:
 spec:
   selector:
     app: {{gitops.app}}
-  type: ClusterIP
+  type: NodePort
   ports:
     - protocol: TCP
       port: {{gitops.port}}
       targetPort: {{gitops.port}}
+      nodePort: {{gitops.nodePort}}
