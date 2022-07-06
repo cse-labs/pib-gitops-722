@@ -1,16 +1,17 @@
 template: pib-service
 deployments:
-  dev:
-    target: dev
-    values:
-      app: imdb
-      environment: dev
-      image: ghcr.io/cse-labs/imdb-app:latest
-      imageName: ghcr.io/cse-labs/imdb-app
-      imageTag: latest
-      name: imdb
-      namespace: imdb
-      port: 8080
-      nodePort: 30080
-      targets: []
-      workspace: imdb
+    dev:
+        target: dev
+        values:
+            app: imdb
+            environment: dev
+            image: ghcr.io/cse-labs/imdb-app:latest
+            imageName: ghcr.io/cse-labs/imdb-app
+            imageTag: latest
+            name: imdb
+            namespace: imdb
+            nodePort: 30080
+            port: 8080
+            targets:
+                - all
+            workspace: imdb
