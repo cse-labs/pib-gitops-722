@@ -1,0 +1,289 @@
+# Creating a Dev/Test Fleet
+
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+
+- `Pilot in a Box` allows you to quickly create Kubernetes clusters running `K3s` in `Azure VMs`
+- These cluster are intended for learning, dev and test
+- For secure or production clusters, we recommend [AKS Secure Baseline](https://github.com/mspnp/aks-baseline)
+
+## Prerequisites
+
+- Required Learning
+  - Go through the Kubernetes in Codespaces inner-loop hands-on lab [here](https://github.com/cse-labs/kubernetes-in-codespaces)
+  - Repeat until you are comfortable with Codespaces, Kubernetes, Prometheus, Fluent Bit, Grafana, K9s, and our inner-loop process
+    - Everything is built on this
+- Recommended Learning
+  - Go through the GitOps Automation [Quick Start](https://github.com/bartr/autogitops)
+    - Repeat until you are comfortable
+      - GitOps is built on this
+
+## Click on `Use this template` and create your GitOps repo
+
+- Only clone the main branch
+- Additional instructions reference your new GitHub repo, not this repo
+
+## Verify ci-cd
+
+- Open the `Actions` tab in your repo at GitHub.com
+  - The action needs read / write permission
+  - You may have to change your default permission
+    - Settings
+      - Actions
+        - General
+
+## Create a Codespace
+
+- Create your Codespace from your new repo
+  - Click on `Code` then click `New Codespace`
+
+Once Codespaces is running:
+
+> Make sure your terminal is running zsh - bash is not supported and will not work
+>
+> If it's running bash, exit and create a new terminal (this is a random bug in Codespaces)
+
+## Validate your setup
+
+> It is a best practice to close the first shell and start a new one - sometimes the shell starts before setup is complete and isn't fully configured
+
+```bash
+
+# check your PAT - the two values should be the same
+echo $AKDC_PAT
+echo $GITHUB_TOKEN
+
+# check your env vars
+flt env
+
+# output
+# AKDC_GITOPS=true
+# AKDC_PAT=yourPAT
+# AKDC_REPO=yourRepoTenant/yourRepoName
+
+```
+
+## Set Flux repo and branch
+
+- Edit `apps/flux-system/app.yaml`
+  - Set `repo` and `branch`
+  - Git commit and push
+
+## Login to Azure
+
+- Run `az login --use-device-code`
+  - Select your subscription if required
+
+## Check availability of VM SKU in Azure region
+
+```bash
+
+# default azure region is centralus
+az vm list-sizes -l yourLocation -o table | grep -e Standard_D4as_v5 -e Standard_D4s_v5
+
+```
+
+## Create a single cluster fleet
+
+- `flt create -c your-cluster-name --verbose`
+  - do not specify `--arc` if you are using a normal AIRS subscription
+  - do not specify `--ssl` unless you have domain, DNS, and wildcard cert setup
+  - specify `--verbose` to see verbose errors
+  - if VM SKU is not available in default region (centralus), specify `-l yourLocation` to create cluster in different region
+
+## Update your GitOps repo
+
+```bash
+
+# you should see new files from ci-cd
+# if you don't, check the Actions tab
+git pull
+
+# add and commit the ips file
+git add .
+git commit -am "added ips file"
+git push
+
+```
+
+## Check setup status
+
+> flt is the fleet CLI provided by Pilot-in-a-Box
+>
+> The `flt check` commands will fail until SSHD is running, so you may get errors for 30 seconds or so
+
+- Run until you get a status of "complete"
+  - Usually 4-5 min
+
+```bash
+
+# check setup status
+flt check setup
+
+```
+
+## Check your Fleet
+
+```bash
+
+# list clusters in the fleet
+flt list
+
+# check heartbeat on the fleet
+# you should get 17 bytes from each cluster
+# if not, please reach out to the Platform Team for support
+flt check heartbeat
+
+```
+
+## Deploy the Reference App
+
+- IMDb is the reference app
+- Normally, the apps would be in separate repos
+  - We include the reference app in this repo for convenience
+  - Heartbeat and Istio are `bootstrap services` and should be in this repo
+
+```bash
+
+cd apps/imdb
+
+# check deploy targets (should be [])
+flt targets list
+
+# clear the targets if not []
+flt targets clear
+
+# add all clusters as a target
+flt targets add all
+
+# deploy the changes
+flt targets deploy
+
+```
+
+Optionally, follow these [instructions](./docs/Canary.md) to enable automated canary deployment using flagger.
+
+## Check that your GitHub Action is running
+
+- <https://github.com/yourOrg/yourRepo/actions>
+  - your action should be queued or in-progress
+
+## Check deployment
+
+- Once the action completes successfully
+
+```bash
+
+# you should see imdb added to your cluster
+git pull
+
+# force flux to sync
+# flux will sync on a schedule - this command forces it to sync now for debugging
+flt sync
+
+# check that imdb is deployed to your cluster
+flt check app imdb
+
+# curl the IMDb endpoints
+flt curl /version
+flt curl /healthz
+flt curl /readyz
+
+```
+
+## Delete your test cluster
+
+```bash
+
+# change to the repo base dir
+cd $REPO_BASE
+
+git pull
+
+flt delete yourCluster
+
+## you can skip these steps if you're deleting the repo
+
+# delete your cluster config & deployments
+rm ips
+rm -f  clusters/yourClusterName.yaml
+rm -rf clusters/yourClusterName
+
+# commit and push to GitHub
+git add .
+git commit -am "delete cluster"
+git push
+
+```
+
+## Create a multi-cluster Fleet
+
+- We generally group our fleets together in one resource group
+- An example of creating a 3 cluster fleet
+  - this will create the following meta data which can be used as targets
+    - region:central
+    - zone:central-tx
+    - district:central-tx-atx
+    - store:central-tx-atx-801
+
+  ```bash
+
+  flt create -g my-fleet \
+    -c central-tx-atx-801 \
+    -c east-ga-atl-801 \
+    -c west-wa-sea-801
+
+  ```
+
+## Setup your GitHub PAT
+
+> GitOps needs a PAT that can push to this repo
+>
+> You can use your Codespaces token but it will be deleted when your Codespace is deleted and GitOps will quit working
+
+### For production, you want to use a service account instead of your individual account
+
+- Create a Personal Access Token (PAT) in your GitHub account
+  - Grant repo and package access
+  - You can use an existing PAT as long as it has permissions
+  - <https://github.com/settings/tokens>
+
+- Create a personal Codespace secret
+  - <https://github.com/settings/codespaces>
+  - Name: PAT
+  - Value: your PAT
+  - Grant access to this repo and any other repos you want
+
+## Setup your Azure Subscription
+
+- If you plan to use Azure Arc
+  - Request a `sponsored subscription` from AIRS
+- Additional setup is required
+  - Contact the Platform Team for more details
+    - domain name
+    - DNS
+    - SSL wildcard cert
+    - Managed Identity
+    - Key Vault
+    - Service Principal
+    > NOTE: Update `.devcontainer` for your fleet repository to add these env variables for an on-going updates to fleet
+
+      ```bash
+
+        export AKDC_SSL=yourSSL
+        export AKDC_DNS_RG=yourDNSRg
+
+      ```
+
+## Support
+
+This project uses GitHub Issues to track bugs and feature requests. Please search the existing issues before filing new issues to avoid duplicates.  For new issues, file your bug or feature request as a new issue.
+
+## Contributing
+
+This project welcomes contributions and suggestions and has adopted the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct.html).
+
+For more information see [Contributing.md](./.github/CONTRIBUTING.md)
+
+## Trademarks
+
+This project may contain trademarks or logos for projects, products, or services. Any use of third-party trademarks or logos are subject to those third-party's policies.

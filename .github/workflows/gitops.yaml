@@ -1,0 +1,38 @@
+name: Secure-Build
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  gitops:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v2
+
+    - name: Docker Pull
+      run: docker pull ghcr.io/bartr/goa:beta
+
+    - name: Git Config
+      run: |
+        git config --global user.email "autogitops@outlook.com"
+        git config --global user.name "autogitops"
+
+    - name: GitOps Automation
+      run: |
+        docker run --rm \
+          -v $PWD:/goa/fleet \
+          -v $PWD:/goa/control \
+          ghcr.io/retaildevcrews/goa:beta
+
+    - name: Commit GitOps changes
+      run: |
+        if [ -n "$(git status --porcelain)" ]; then
+          git pull
+          git add .
+          git commit -m "GitOps Secure Build"
+          git push
+        else
+          echo "No changes found"
+        fi
