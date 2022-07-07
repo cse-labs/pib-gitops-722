@@ -7,5 +7,6 @@ deployments:
             environment: dev
             name: redis
             namespace: redis
-            targets: []
+            targets:
+                - all
             workspace: bootstrap
