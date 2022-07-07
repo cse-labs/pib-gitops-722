@@ -1,0 +1,9 @@
+template: .gitops
+deployments:
+  dev:
+    target: dev
+    values:
+      name: flux-system
+      namespace: flux-system
+      workspace: flux-system
+      targets: [ all ]
