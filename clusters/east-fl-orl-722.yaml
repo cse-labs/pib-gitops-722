@@ -1,0 +1,13 @@
+kind: Cluster
+metadata:
+  name: east-fl-orl-722
+  labels:
+    environment: dev
+    region: east
+    zone: east-fl
+    district: east-fl-orl
+    store: east-fl-orl-722
+    gitopsRepo: cse-labs/pib-gitops-722
+    gitopsBranch: main
+    domain: east-fl-orl
+spec:
