@@ -8,7 +8,7 @@ spec:
     app: {{gitops.app}}
   type: NodePort
   ports:
-    - name: nodePort
+    - name: node-port
       protocol: TCP
       port: {{gitops.port}}
       targetPort: {{gitops.port}}
