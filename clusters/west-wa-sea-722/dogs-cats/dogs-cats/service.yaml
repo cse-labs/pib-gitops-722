@@ -8,7 +8,7 @@ spec:
     app: dogs-cats
   type: NodePort
   ports:
-    - name: nodePort
+    - name: node-port
       protocol: TCP
       port: 8080
       targetPort: 8080
