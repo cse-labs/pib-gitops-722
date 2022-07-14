@@ -15,5 +15,6 @@ deployments:
             nodePort: 30080
             port: 8080
             readinessProbe: /readyz
-            targets: []
+            targets:
+                - all
             workspace: orderaccuracy
