@@ -1,0 +1,19 @@
+template: pib-service
+deployments:
+    dev:
+        target: dev
+        values:
+            app: orderaccuracy
+            cpuLimit: 500m
+            cpuRequest: 300m
+            image: ghcr.io/cse-labs/orderaccuracy:latest
+            livenessProbe: /healthz
+            memoryLimit: 128Mi
+            memoryRequest: 64Mi
+            name: orderaccuracy
+            namespace: orderaccuracy
+            nodePort: 30080
+            port: 8080
+            readinessProbe: /readyz
+            targets: []
+            workspace: orderaccuracy
