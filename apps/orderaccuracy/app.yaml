@@ -16,5 +16,5 @@ deployments:
             port: 8080
             readinessProbe: /readyz
             targets:
-                - region:west
+                - all
             workspace: orderaccuracy
